@@ -1,0 +1,143 @@
+External: mongo --port 4418 -u ram -p <password> admin
+Container: mongo
+
+1) To see the list of databases in the system:
+
+> show dbs
+admin   0.031GB
+local   0.031GB
+tracks  (empty)
+
+2) Just like in SQL, you need to first select a database to be able to perform operations on it. To select a database: 
+
+> use tracks
+switched to db tracks
+
+3) To find out the currently selected database:
+
+> db.getName()
+tracks
+
+4) To delete / drop a database, make sure you have selected the database and
+   then do this:
+
+> db.dropDatabase()
+{ "dropped" : "tracks", "ok" : 1 }
+
+5) To see the collections in a databases:
+
+> show collections
+or 
+> db.getCollectionNames()
+
+6) That above commands resulted in the creation of the new database named
+   "tracks". In the process a new collection called "hundred" was also created in the database. 
+
+> use tracks
+switched to db tracks
+
+> db.hundred.insert({name:"Usain Bolt", year:2017})
+WriteResult({ "nInserted" : 1 })
+
+Create / add data in MongoDB
+============================
+7) To create documents in a collection:
+
+> db.hundred.insert({name:"Test 1", year:2015})
+WriteResult({ "nInserted" : 1 })
+> db.hundred.insert({name:"Test 2", year:2010})
+WriteResult({ "nInserted" : 1 })
+
+The two commands above added two more documents to the collection named "hundred" in the "tracks" database.
+
+8) save instead of insert
+
+> db.hundred.save({name:"Test 1", year:2015})
+WriteResult({ "nInserted" : 1 })
+> db.hundred.save({name:"Test 2", year:2010})
+WriteResult({ "nInserted" : 1 })
+
+Note: insert will always add a new document.
+      save does an insert if there is no _id key in the object it receives, else it does an update.
+
+I personally see save to be quite pointless. Unless you are too hooked to the spelling and sound of save, it is recommended to use insert to add new documents to a collection, and update to update collections.
+
+9) To read data from a collection:
+
+> db.hundred.find()  
+{ "_id" : ObjectId("5a77d082465ea295c8b9195b"), "name" : "Usain Bolt", "year": 2017 }
+{ "_id" : ObjectId("5a77d169465ea295c8b9195c"), "name" : "Test 1", "year": 2015 }
+{ "_id" : ObjectId("5a77d176465ea295c8b9195d"), "name" : "Test 2", "year": 2010 }
+
+10) That got the whole collection. To limit it to just two:
+
+> db.hundred.find().limit(2)
+{ "_id" : ObjectId("5a77d082465ea295c8b9195b"), "name" : "Usain Bolt", "year": 2017 }
+{ "_id" : ObjectId("5a77d169465ea295c8b9195c"), "name" : "Test 1", "year": 2015 }
+
+11) Similar to using find().limit(1), there is a function called findOne(), which will get you only one document in the result.
+
+> db.hundred.findOne()
+{
+  "_id" : ObjectId("5a77d082465ea295c8b9195b"),
+  "name" : "Usain Bolt",
+  "year" : 2017
+}
+
+12) What if you want to conditionally find documents?
+
+> db.hundred.find({year:{$gt:2015}})
+{ "_id" : ObjectId("5a77d082465ea295c8b9195b"), "name" : "Usain Bolt", "year": 2017 }
+
+$lt - ' $lte - ' $gte - '>='
+$ne - '!='
+$in - 'is in array'
+$nin - '! in array'
+
+13) And how do we do an 'equal to' (==) query? Just match the value for the queried key:
+
+> db.hundred.find({year:2017})
+{ "_id" : ObjectId("5a77d082465ea295c8b9195b"), "name" : "Usain Bolt", "year": 2017 }
+
+14) We can even use regular expressions in our queries!
+
+> db.hundred.find({name:{$regex: /Usain|Bolt/i}})
+{ "_id" : ObjectId("5a77d082465ea295c8b9195b"), "name" : "Usain Bolt", "year": 2017 }
+> db.hundred.find({name:{$regex: /Bolt/i}})
+{ "_id" : ObjectId("5a77d082465ea295c8b9195b"), "name" : "Usain Bolt", "year": 2017 } 
+
+15) MongoDB has another operator called $where using which you can perform
+    SQL's WHERE-like operations.
+
+> db.hundred.find({$where: 'this.year > 2015'})
+{ "_id" : ObjectId("5a77d082465ea295c8b9195b"), "name" : "Usain Bolt", "year": 2017 }
+
+16) How do you delete a field from a document?
+
+> db.hundred.update({name:'Test 1'}, {$unset:{year:1}}) 
+
+> db.hundred.find()
+{ "_id" : ObjectId("5a77d082465ea295c8b9195b"), "name" : "Usain Bolt", "year": 2017 }
+{ "_id" : ObjectId("5a77d169465ea295c8b9195c"), "name" : "Test 1" }
+{ "_id" : ObjectId("5a77d176465ea295c8b9195d"), "name" : "Test 2", "year": 2010 }
+
+17) How do you delete a document from a collection?
+
+> db.hundred.remove({name: "Test 1"})
+WriteResult({ "nRemoved" : 1 })
+
+18) How do you delete a collection?
+
+> db.hundred.drop()
+true
+
+19) This will return the total number of documents in the collection named
+    hundred:
+
+> db.hundred.count({})
+0
+
+20) This will return the total number of documents in the collection named
+    hundred with the value of year more than 1990:
+
+> db.hundred.count({year:{$gt:1990})

@@ -1,0 +1,5 @@
+flask-restful
+pymongo
+pep8
+Flask
+arrow

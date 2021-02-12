@@ -1,0 +1,27 @@
+# version: '3'  # version of compose format 
+
+services:
+  laptop-service:
+    build: ./laptop  
+    volumes:
+      - ./laptop:/usr/src/app 
+    ports:
+      - 5001:80  # host:container
+    links:
+      - db
+    environment:
+      - DB_PORT_27017_TCP_ADDR=db
+    depends_on:
+      - db
+
+  db:
+    image: mongo
+
+  website:
+    image: php:apache  
+    volumes:
+      - ./website:/var/www/html 
+    ports:
+      - 5000:80  # host:container
+    depends_on:
+      - laptop-service  # website is not going to work unless laptop-service is running
